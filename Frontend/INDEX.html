@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TripVerse - Travel Booking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <h1 class="logo">TripVerse</h1>
+        <ul class="nav-links">
+            <li><a href="INDEX.html">Home</a></li>
+            <li><a href="booking.html">Book</a></li>
+            <li><a href="planner.html">Planner</a></li>
+            <li><a href="service.html">Services</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="login.html">Login</a></li>
+            <li><a href="register.html" class="register-btn">Register</a></li>
+        </ul>
+    </nav>
+  <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-content">
+            <h2>Explore India with Ease</h2>
+            <p>Flights • Trains • Buses • Cabs</p>
+            <button class="hero-btn" id="planBtn">Plan Your Journey</button>
+
+        </div>
+    </section>
+    <!-- BOOKING SECTION -->
+<section class="booking-section" id="booking">
+    <h2>Book Your Tickets</h2>
+
+    <div class="booking-form">
+        <input type="text" placeholder="From">
+        <input type="text" placeholder="To">
+        <input type="date">
+        
+        <select>
+            <option>Select Transport</option>
+            <option>Flight</option>
+            <option>Train</option>
+            <option>Bus</option>
+            <option>Cab</option>
+        </select>
+
+        <button>Search</button>
+    </div>
+</section>
+
+
+    <!-- TRANSPORT SECTION -->
+    <section class="transport-section">
+        <h2>Choose Your Transport</h2>
+
+        <div class="transport-cards">
+            <div class="card">
+                <h3>✈️ Flights</h3>
+                <p>Fast and comfortable air travel</p>
+            </div>
+
+            <div class="card">
+                <h3>🚆 Trains</h3>
+                <p>Affordable and scenic journeys</p>
+            </div>
+
+            <div class="card">
+                <h3>🚌 Buses</h3>
+                <p>Convenient intercity transport</p>
+            </div>
+
+            <div class="card">
+                <h3>🚖 Cabs</h3>
+                <p>Door to door travel comfort</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- INTERACTIVE ELEMENTS SECTION -->
+    <section class="section">
+        <h2>Explore & Plan</h2>
+
+        <!-- Destination Gallery -->
+        <div class="destination-gallery"></div>
+
+        <!-- Weather Widget -->
+        <div class="weather-widget" style="margin: 2rem 0;"></div>
+    </section>
+
+<script src="javascript/script.js"></script>
+</body>
+</html>

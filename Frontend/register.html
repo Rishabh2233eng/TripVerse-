@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - TripVerse</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-body">
+    <a href="index.html" class="home-link">← Back to Home</a>
+    <div class="auth-container">
+        <h2>Create Account</h2>
+        <form class="register-form">
+            <input type="text" id="reg-name" placeholder="Full Name">
+            <input type="email" id="reg-email" placeholder="Email Address">
+            <input type="tel" id="reg-phone" placeholder="Phone Number">
+    <select id="reg-gender">
+        <option value="">Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+    </select>
+    <input type="password" id="reg-password" placeholder="Create Password">
+    <input type="password" id="reg-confirm-password" placeholder="Confirm Password">
+    <button type="submit">Register</button>
+    <p class="form-message"></p>
+</form>
+        <p>Already have an account? 
+            <a href="login.html">Login Here</a>
+        </p>
+    </div>
+<script src="javascript/script.js"></script>
+</body>
+</html>
