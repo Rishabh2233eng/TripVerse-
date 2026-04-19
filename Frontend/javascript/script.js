@@ -1,5 +1,7 @@
-// API Base URL - Change this to your deployed backend URL
-const API_BASE_URL = 'https://tripverse-lhep.onrender.com';
+// API Base URL - use local backend when testing locally, otherwise use deployed backend
+const API_BASE_URL = window.location.protocol === 'file:' || window.location.hostname === 'localhost'
+    ? 'http://localhost:5000'
+    : 'https://tripverse-lhep.onrender.com';
 const registerForm = document.querySelector(".register-form");
 if (registerForm) {
     // Real-time validation
