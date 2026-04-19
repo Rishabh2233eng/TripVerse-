@@ -11,8 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/tripverse")
+mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/tripverse")
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
 
