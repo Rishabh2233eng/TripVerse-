@@ -32,6 +32,11 @@ app.post("/register", async (req, res) => {
     try {
         const { name, email, phone, gender, password } = req.body;
 
+        // Validate input
+        if (!name || !email || !phone || !gender || !password) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
         const newUser = new User({
             name,
             email,
@@ -50,8 +55,8 @@ app.post("/register", async (req, res) => {
         res.json({ message: "User registered successfully" });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error registering user" });
+        console.error("Registration error:", error.message);
+        res.status(500).json({ message: `Error registering user: ${error.message}` });
     }
 });
 
@@ -59,22 +64,31 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
+
         const user = await User.findOne({ email, password });
 
         if (!user) {
             return res.status(401).json({ message: "Invalid email or password" });
         }
 
-        res.json({ message: "Login successful" });
+        res.json({ message: "Login successful", user: { email: user.email, name: user.name } });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error logging in" });
+        console.error("Login error:", error.message);
+        res.status(500).json({ message: `Error logging in: ${error.message}` });
     }
 });
 // ===== BOOKING API =====
 app.post("/book", async (req, res) => {
     try {
         const { from, to, date, transport } = req.body;
+
+        if (!from || !to || !date || !transport) {
+            return res.status(400).json({ message: "All booking fields are required" });
+        }
 
         const newBooking = new Booking({
             from,
@@ -83,16 +97,40 @@ app.post("/book", async (req, res) => {
             transport
         });
 
-        await newBooking.save();
+        const savedBooking = await newBooking.save();
 
-        res.json({ message: "Booking successful" });
+        res.json({ message: "Booking successful", booking: savedBooking });
 
     } catch (error) {
-        res.status(500).json({ error: "Booking failed" });
+        console.error("Booking error:", error.message);
+        res.status(500).json({ error: `Booking failed: ${error.message}` });
     }
 });
-// ===== TRIP PLAN APIs =====
 
+// Get all bookings
+app.get("/bookings", async (req, res) => {
+    try {
+        const bookings = await Booking.find().sort({ createdAt: -1 });
+        res.json(bookings);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error fetching bookings" });
+    }
+});
+
+// Delete a booking by ID
+app.delete("/bookings/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        await Booking.findByIdAndDelete(id);
+        res.json({ message: "Booking canceled successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error cancelling booking" });
+    }
+});
+
+// ===== TRIP PLAN APIs =====
 // Save trip plan
 app.post("/api/trip-plans", async (req, res) => {
     try {
