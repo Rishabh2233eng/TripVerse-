@@ -1,4 +1,5 @@
-const registerForm = document.querySelector(".register-form");
+// API Base URL - Change this to your deployed backend URL
+const API_BASE_URL = 'https://tripverse-lhep.onrender.com';
 if (registerForm) {
     // Real-time validation
     const inputs = registerForm.querySelectorAll('input');
@@ -30,15 +31,34 @@ if (registerForm) {
         submitBtn.innerHTML = '<span class="spinner"></span> Registering...';
 
         try {
-            // Simulate registration (frontend only)
-            showToast("Registration successful!", "success");
-            setTimeout(() => {
-                window.location.href = "login.html";
-            }, 1500);
+            const response = await fetch(`${API_BASE_URL}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    phone,
+                    gender,
+                    password
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showToast("Registration successful!", "success");
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Registration failed');
+            }
         } catch (error) {
-            message.textContent = "Error during registration";
+            message.textContent = error.message || "Error during registration";
             message.className = "form-message error";
-            showToast("Registration failed. Please try again.", "error");
+            showToast(error.message || "Registration failed. Please try again.", "error");
         } finally {
             // Reset loading state
             submitBtn.disabled = false;
@@ -77,15 +97,33 @@ if (loginForm) {
         submitBtn.innerHTML = '<span class="spinner"></span> Logging in...';
 
         try {
-            // Simulate login (frontend only)
-            showToast("Login successful!", "success");
-            setTimeout(() => {
-                window.location.href = "INDEX.html";
-            }, 1500);
+            const response = await fetch(`${API_BASE_URL}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    password
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Store user data in localStorage
+                localStorage.setItem('user', JSON.stringify(data.user));
+                showToast("Login successful!", "success");
+                setTimeout(() => {
+                    window.location.href = "INDEX.html";
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Login failed');
+            }
         } catch (error) {
-            message.textContent = "Error during login";
+            message.textContent = error.message || "Error during login";
             message.className = "form-message error";
-            showToast("Login failed. Please try again.", "error");
+            showToast(error.message || "Login failed. Please try again.", "error");
         } finally {
             // Reset loading state
             submitBtn.disabled = false;
@@ -266,38 +304,49 @@ if (bookingForm) {
         submitBtn.innerHTML = '<span class="spinner"></span> Booking...';
 
         try {
-            // Store booking data locally
-            const bookingData = {
-                from,
-                to,
-                date,
-                transport,
-                bookingId: Date.now(),
-                bookedAt: new Date().toISOString()
-            };
+            const response = await fetch(`${API_BASE_URL}/book`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    from,
+                    to,
+                    date,
+                    transport
+                })
+            });
 
-            // Get existing bookings from localStorage
-            const existingBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+            const data = await response.json();
 
-            // Add new booking
-            existingBookings.push(bookingData);
+            if (response.ok) {
+                // Also store locally for immediate display
+                const bookingData = {
+                    from,
+                    to,
+                    date,
+                    transport,
+                    bookingId: Date.now(),
+                    bookedAt: new Date().toISOString()
+                };
 
-            // Save back to localStorage
-            localStorage.setItem('bookings', JSON.stringify(existingBookings));
+                const existingBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+                existingBookings.push(bookingData);
+                localStorage.setItem('bookings', JSON.stringify(existingBookings));
 
-            showToast("Booking successful! Your ticket has been booked.", "success");
+                showToast("Booking successful! Your ticket has been booked.", "success");
+                bookingForm.reset();
 
-            // Clear form
-            bookingForm.reset();
-
-            // Refresh tickets if tickets section is visible
-            if (document.getElementById('tickets') && document.getElementById('tickets').style.display !== 'none') {
-                displayTickets();
+                // Refresh tickets if tickets section is visible
+                if (document.getElementById('tickets') && document.getElementById('tickets').style.display !== 'none') {
+                    displayTickets();
+                }
+            } else {
+                throw new Error(data.message || 'Booking failed');
             }
-
         } catch (error) {
-            console.error('Error saving booking:', error);
-            showToast("Error saving booking. Please try again.", "error");
+            console.error('Error booking:', error);
+            showToast(error.message || "Error saving booking. Please try again.", "error");
         } finally {
             // Reset loading state
             submitBtn.disabled = false;

@@ -11,9 +11,11 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/tripverse")
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
+.catch(err => console.log(err));
+>>>>>>> c6c1c1b (Connect frontend to deployed backend API)
 
 // Test route (keep this)
 app.get("/", (req, res) => {
