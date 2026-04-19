@@ -115,7 +115,7 @@ if (loginForm) {
                 localStorage.setItem('user', JSON.stringify(data.user));
                 showToast("Login successful!", "success");
                 setTimeout(() => {
-                    window.location.href = "INDEX.html";
+                    window.location.href = "index.html";
                 }, 1500);
             } else {
                 throw new Error(data.message || 'Login failed');
