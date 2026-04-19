@@ -1,5 +1,6 @@
 // API Base URL - Change this to your deployed backend URL
 const API_BASE_URL = 'https://tripverse-lhep.onrender.com';
+const registerForm = document.querySelector(".register-form");
 if (registerForm) {
     // Real-time validation
     const inputs = registerForm.querySelectorAll('input');
@@ -24,7 +25,7 @@ if (registerForm) {
         message.className = "form-message";
 
         // Validate all fields
-        if (!validateForm()) return;
+        if (!validateForm(registerForm)) return;
 
         // Show loading state
         submitBtn.disabled = true;
@@ -90,7 +91,7 @@ if (loginForm) {
         message.className = "form-message";
 
         // Validate all fields
-        if (!validateForm()) return;
+        if (!validateForm(loginForm)) return;
 
         // Show loading state
         submitBtn.disabled = true;
@@ -195,13 +196,13 @@ function validateField(e) {
     return isValid;
 }
 
-function validateForm() {
-    const form = event.target;
+function validateForm(form) {
+    if (!form) return false;
     const inputs = form.querySelectorAll('input, select');
     let isValid = true;
 
     inputs.forEach(input => {
-        if (!validateField({target: input})) {
+        if (!validateField({ target: input })) {
             isValid = false;
         }
     });
@@ -320,20 +321,6 @@ if (bookingForm) {
             const data = await response.json();
 
             if (response.ok) {
-                // Also store locally for immediate display
-                const bookingData = {
-                    from,
-                    to,
-                    date,
-                    transport,
-                    bookingId: Date.now(),
-                    bookedAt: new Date().toISOString()
-                };
-
-                const existingBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-                existingBookings.push(bookingData);
-                localStorage.setItem('bookings', JSON.stringify(existingBookings));
-
                 showToast("Booking successful! Your ticket has been booked.", "success");
                 bookingForm.reset();
 
@@ -535,16 +522,28 @@ function showSection(sectionName) {
     }
 }
 
-function displayTickets() {
+async function fetchBookings() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/bookings`);
+        if (!response.ok) {
+            throw new Error('Unable to fetch bookings');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching bookings:', error);
+        return [];
+    }
+}
+
+async function displayTickets() {
     const ticketsList = document.getElementById('tickets-list');
     const noTickets = document.getElementById('no-tickets');
 
     if (!ticketsList) return;
 
-    // Get bookings from localStorage
-    const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+    const bookings = await fetchBookings();
 
-    if (bookings.length === 0) {
+    if (!bookings || bookings.length === 0) {
         ticketsList.innerHTML = '';
         noTickets.style.display = 'block';
         return;
@@ -552,11 +551,10 @@ function displayTickets() {
 
     noTickets.style.display = 'none';
 
-    // Sort bookings by booking date (newest first)
-    bookings.sort((a, b) => new Date(b.bookedAt) - new Date(a.bookedAt));
+    bookings.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 
     ticketsList.innerHTML = bookings.map(booking => `
-        <div class="ticket-card" data-booking-id="${booking.bookingId}">
+        <div class="ticket-card" data-booking-id="${booking._id}">
             <div class="ticket-header">
                 <div class="ticket-route">
                     <span class="from-city">${booking.from}</span>
@@ -579,39 +577,38 @@ function displayTickets() {
                     </div>
                     <div class="info-item">
                         <span class="label">Booked On:</span>
-                        <span class="value">${new Date(booking.bookedAt).toLocaleDateString('en-IN')}</span>
+                        <span class="value">${new Date(booking.createdAt).toLocaleDateString('en-IN')}</span>
                     </div>
                     <div class="info-item">
                         <span class="label">Booking ID:</span>
-                        <span class="value">#${booking.bookingId}</span>
+                        <span class="value">#${booking._id.slice(-6).toUpperCase()}</span>
                     </div>
                 </div>
             </div>
 
             <div class="ticket-actions">
-                <button onclick="printTicket(${booking.bookingId})" class="print-ticket-btn">Print Ticket</button>
-                <button onclick="cancelBooking(${booking.bookingId})" class="cancel-booking-btn">Cancel</button>
+                <button onclick="printTicket('${booking._id}')" class="print-ticket-btn">Print Ticket</button>
+                <button onclick="cancelBooking('${booking._id}')" class="cancel-booking-btn">Cancel</button>
             </div>
         </div>
     `).join('');
 }
 
-function printTicket(bookingId) {
-    const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    const booking = bookings.find(b => b.bookingId === bookingId);
+async function printTicket(bookingId) {
+    const bookings = await fetchBookings();
+    const booking = bookings.find(b => b._id === bookingId);
 
     if (!booking) {
         showToast('Booking not found', 'error');
         return;
     }
 
-    // Create printable ticket
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-            <title>TripVerse Ticket - #${booking.bookingId}</title>
+            <title>TripVerse Ticket - #${booking._id.slice(-6).toUpperCase()}</title>
             <style>
                 body { font-family: Arial, sans-serif; margin: 20px; }
                 .ticket { border: 2px solid #007bff; padding: 20px; max-width: 600px; margin: 0 auto; }
@@ -644,12 +641,12 @@ function printTicket(bookingId) {
                     </div>
                     <div class="detail-row">
                         <strong>Booked On:</strong>
-                        <span>${new Date(booking.bookedAt).toLocaleDateString()}</span>
+                        <span>${new Date(booking.createdAt).toLocaleDateString()}</span>
                     </div>
                 </div>
 
                 <div class="booking-id">
-                    <strong>Booking ID: #${booking.bookingId}</strong>
+                    <strong>Booking ID: #${booking._id.slice(-6).toUpperCase()}</strong>
                 </div>
             </div>
         </body>
@@ -659,19 +656,25 @@ function printTicket(bookingId) {
     printWindow.print();
 }
 
-function cancelBooking(bookingId) {
+async function cancelBooking(bookingId) {
     if (!confirm('Are you sure you want to cancel this booking?')) {
         return;
     }
 
-    const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    const updatedBookings = bookings.filter(b => b.bookingId !== bookingId);
+    try {
+        const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+            method: 'DELETE'
+        });
 
-    if (updatedBookings.length < bookings.length) {
-        localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Unable to cancel booking');
+        }
+
+        showToast(data.message || 'Booking cancelled successfully', 'success');
         displayTickets();
-        showToast('Booking cancelled successfully', 'success');
-    } else {
-        showToast('Booking not found', 'error');
+    } catch (error) {
+        console.error('Error cancelling booking:', error);
+        showToast(error.message || 'Error cancelling booking. Please try again.', 'error');
     }
 }
