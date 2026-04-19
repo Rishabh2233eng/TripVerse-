@@ -11,9 +11,15 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/tripverse")
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
+// Use MongoDB Atlas by default (set MONGODB_URI env var to override)
+const mongoURL = process.env.MONGODB_URI || "mongodb+srv://Rishabhm2:abc123%40%40@cluster0.cfavbla.mongodb.net/tripverse?retryWrites=true&w=majority";
+
+mongoose.connect(mongoURL, {
+    connectTimeoutMS: 15000,
+    socketTimeoutMS: 15000,
+})
+  .then(() => console.log("MongoDB Connected Successfully"))
+  .catch(err => console.error("MongoDB Connection Error:", err.message));
 
 // Test route
 app.get("/", (req, res) => {
