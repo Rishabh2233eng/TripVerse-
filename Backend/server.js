@@ -10,27 +10,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection
-// Use MongoDB Atlas by default (set MONGODB_URI env var to override)
-const mongoURL = process.env.MONGODB_URI || "mongodb+srv://Rishabhm2:abc123%40%40@cluster0.cfavbla.mongodb.net/tripverse?retryWrites=true&w=majority";
-
-mongoose.connect(mongoURL, {
-    connectTimeoutMS: 15000,
-    socketTimeoutMS: 15000,
-})
-  .then(() => console.log("MongoDB Connected Successfully"))
-  .catch(err => console.error("MongoDB Connection Error:", err.message));
+// ===== ROUTES =====
 
 // Test route
 app.get("/", (req, res) => {
     res.send("Server is running...");
-});
-
-// Dynamic port (required for Render)
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
 });
 
 // ===== REGISTER API =====
@@ -87,6 +71,7 @@ app.post("/login", async (req, res) => {
         res.status(500).json({ message: `Error logging in: ${error.message}` });
     }
 });
+
 // ===== BOOKING API =====
 app.post("/book", async (req, res) => {
     try {
@@ -206,3 +191,23 @@ app.delete("/api/trip-plans/:planId", async (req, res) => {
         res.status(500).json({ message: "Error deleting trip plan" });
     }
 });
+
+// MongoDB Connection (local only)
+const mongoURL = "mongodb://127.0.0.1:27017/tripverse";
+
+mongoose.connect(mongoURL, {
+    connectTimeoutMS: 15000,
+    socketTimeoutMS: 15000,
+})
+  .then(() => {
+      console.log(`MongoDB Connected Successfully to ${mongoURL}`);
+
+      // Start server on fixed local port
+      const PORT = 5000;
+      app.listen(PORT, () => {
+          console.log(`Server running on port ${PORT}`);
+      });
+  })
+  .catch(err => {
+      console.error("MongoDB Connection Error:", err.message);
+  });

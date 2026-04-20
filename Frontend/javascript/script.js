@@ -1,7 +1,15 @@
-// API Base URL - use local backend when testing locally, otherwise use deployed backend
-const API_BASE_URL = window.location.protocol === 'file:' || window.location.hostname === 'localhost'
-    ? 'http://localhost:5000'
-    : 'https://tripverse-lhep.onrender.com';
+// API Base URL - local backend for development
+const API_BASE_URL = 'http://localhost:5000';
+
+async function parseJSONResponse(response) {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+        return await response.json();
+    }
+    const text = await response.text();
+    return { message: text || 'Unexpected server response' };
+}
+
 const registerForm = document.querySelector(".register-form");
 if (registerForm) {
     // Real-time validation
@@ -48,7 +56,7 @@ if (registerForm) {
                 })
             });
 
-            const data = await response.json();
+            const data = await parseJSONResponse(response);
 
             if (response.ok) {
                 showToast("Registration successful!", "success");
@@ -111,7 +119,7 @@ if (loginForm) {
                 })
             });
 
-            const data = await response.json();
+            const data = await parseJSONResponse(response);
 
             if (response.ok) {
                 // Store user data in localStorage
@@ -179,6 +187,12 @@ function validateField(e) {
                 isValid = false;
             } else if (value.length < 6) {
                 errorMessage = 'Password must be at least 6 characters';
+                isValid = false;
+            }
+            break;
+        case 'gender':
+            if (!value) {
+                errorMessage = 'Please select your gender';
                 isValid = false;
             }
             break;
@@ -320,7 +334,10 @@ if (bookingForm) {
                 })
             });
 
-            const data = await response.json();
+            const contentType = response.headers.get('content-type') || '';
+            const data = contentType.includes('application/json')
+                ? await response.json()
+                : { message: await response.text() };
 
             if (response.ok) {
                 showToast("Booking successful! Your ticket has been booked.", "success");
@@ -527,10 +544,11 @@ function showSection(sectionName) {
 async function fetchBookings() {
     try {
         const response = await fetch(`${API_BASE_URL}/bookings`);
+        const data = await parseJSONResponse(response);
         if (!response.ok) {
-            throw new Error('Unable to fetch bookings');
+            throw new Error(data.message || 'Unable to fetch bookings');
         }
-        return await response.json();
+        return data;
     } catch (error) {
         console.error('Error fetching bookings:', error);
         return [];
@@ -668,7 +686,7 @@ async function cancelBooking(bookingId) {
             method: 'DELETE'
         });
 
-        const data = await response.json();
+        const data = await parseJSONResponse(response);
         if (!response.ok) {
             throw new Error(data.message || 'Unable to cancel booking');
         }
